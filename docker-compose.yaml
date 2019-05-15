@@ -1,0 +1,112 @@
+version: '2'
+services:
+  bot:
+    image: cryptotrader/bot
+    build:
+      context: ./
+      dockerfile: docker/bot/Dockerfile
+    environment:
+      # TODO - rm CONTAINER_CONFIG_PATH
+      - CONFIG_PATH=${CONTAINER_CONFIG_PATH}
+      - HOST_CONFIG_PATH=$HOST_CONFIG_PATH
+    volumes:
+      - ./:/usr/src
+      - ${HOST_CONFIG_PATH}:${CONTAINER_CONFIG_PATH}
+    networks:
+      - cryptotrader-bot-network
+    depends_on:
+      - db
+      - redis
+    command: python -m cryptotrader --config ${CONTAINER_CONFIG_PATH} execute
+
+  panel:
+    image: cryptotrader/panel
+    build:
+      context: ./
+      dockerfile: docker/panel/Dockerfile
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_DEBUG=1
+    volumes:
+      - ./panel:/usr/src
+      - ./test.yaml:/usr/src/config.yaml
+    networks:
+      - cryptotrader-panel-network
+    ports:
+      - 5000:5000
+    depends_on:
+      - db
+    command: flask run --host=0.0.0.0
+
+  panel-js:
+    image: cryptotrader/panel-js
+    build:
+      context: ./
+      dockerfile: docker/paneljs/Dockerfile
+    volumes:
+      - ./panel/front/js:/js
+      - ./panel/static:/build
+      - ./panel/package.json:/package.json
+    command: npm run build
+
+  # don't use this container in prod!
+  # It not preserves db data.
+  db:
+    image: timescale/timescaledb
+    environment:
+      POSTGRES_USER: cryptotrader
+      POSTGRES_PASSWORD: test
+    networks:
+      - cryptotrader-bot-network
+      - cryptotrader-panel-network
+    volumes:
+      - $DB_DATA_PATH:/var/lib/postgresql/data
+
+  migrate:
+    image: cryptotrader/migrate
+    build:
+      context: .
+      dockerfile: docker/migrate/Dockerfile
+    environment:
+      - CONFIG_PATH=${CONTAINER_CONFIG_PATH}
+    volumes:
+      - ./migrations:/usr/migrations
+      - ${HOST_CONFIG_PATH}:${CONTAINER_CONFIG_PATH}
+    networks:
+      - cryptotrader-bot-network
+    depends_on:
+      - db
+
+  redis:
+    image: redis
+    networks:
+      - cryptotrader-bot-network
+
+  pdd-lint:
+    image: fidals/pdd-ci
+    command: pdd --verbose -f report.xml
+    working_dir: /usr/src
+    volumes:
+      - ./:/usr/src
+
+  coala:
+    image: cryptotrader/coala
+    build:
+      context: .
+      dockerfile: docker/coala/Dockerfile
+    working_dir: /usr/src
+    volumes:
+      - ./:/usr/src
+
+  mypy:
+    image: cryptotrader/mypy
+    build:
+      context: .
+      dockerfile: docker/mypy/Dockerfile
+    working_dir: /usr/src
+    volumes:
+      - ./:/usr/src
+
+networks:
+  cryptotrader-bot-network:
+  cryptotrader-panel-network:

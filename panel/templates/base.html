@@ -1,0 +1,69 @@
+{% import 'macro.html' as macro %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Cryptobot panel</title>
+
+    <link href="{{ front.css.bootstrap }}" rel="stylesheet">
+    <link href="{{ front.css.panel }}" rel="stylesheet">
+  </head>
+
+  <body>
+    <nav class="navbar navbar-inverse fixed-top bg-inverse">
+      <a class="navbar-brand" href="/">Cryptobot panel</a>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <nav class="col-sm-3 col-md-2 hidden-xs-down bg-faded sidebar">
+          <ul class="nav nav-pills flex-column">
+            {{ macro.nav_item("/orders", "Orders table") }}
+            {{ macro.nav_item("/trades", "Trade table") }}
+            {{ macro.nav_item("#", "Balances") }}
+          </ul>
+        </nav>
+
+        <main class="col-sm-9 offset-sm-3 col-md-10 offset-md-2">
+          {% if h1 %}
+            <div class="text-center"><h1>{{ h1 }}</h1></div>
+          {% endif %}
+          {% if columns %}
+            <div class="js-table">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    {% for column in columns %}
+                      <th>
+                        <a href="{{ table_meta['column_urls'][column.name] }}">
+                          {{ column.name }}
+                        </a>
+                      </th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody class="js-table-body">
+                  {% include "table_body.html" %}
+                </tbody>
+              </table>
+
+            </div>
+            <nav>
+              <ul class="pagination justify-content-center">
+                {{ macro.pagination_li(table_meta.prev_url, "Previous") }}
+                {{ macro.pagination_li(table_meta.next_url, "Next") }}
+              </ul>
+            </nav>
+          {% endif %}
+        </main>
+      </div>
+    </div>
+    <script src="{{ front.js.jquery }}"></script>
+    {% if columns %}
+      <script src="{{ front.js.panel }}"></script>
+    {% endif %}
+  </body>
+</html>

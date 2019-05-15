@@ -1,0 +1,26 @@
+{
+    "name": "cryptotrader-panel",
+    "version": "1.0.0",
+    "author": "fidals.com",
+    "dependencies": {
+        "babel-cli": "^6.26.0",
+        "babel-preset-env": "^1.6.1",
+        "babel-plugin-transform-object-rest-spread": "^6.26.0"
+    },
+    "scripts": {
+        "build": "./node_modules/.bin/babel js/*.es6 -d build/"
+    },
+    "babel": {
+        "plugins": ["transform-object-rest-spread"],
+        "presets": [[
+            "env",
+            {
+                "targets": {
+                    "browsers": ["> 5% in RU", "last 2 versions"]
+                },
+                "useBuiltIns": true
+            }
+        ]],
+        "compact": true
+    }
+}

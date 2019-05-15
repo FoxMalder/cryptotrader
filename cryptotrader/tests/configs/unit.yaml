@@ -1,0 +1,85 @@
+dsn: postgresql://cryptotrader:test@db/cryptotrader
+redis_dsn: redis://redis:6379/1
+
+app:
+  # interval between app iteration steps
+  interval: 0.0
+
+logging:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    default-formatter:
+      format: '%(asctime)s %(levelname)-7s [%(name)-44s] %(message)s'
+  handlers:
+    default-handler:
+      class: logging.StreamHandler
+      formatter: default-formatter
+      level: DEBUG
+  loggers:
+      cryptotrader:
+        level: DEBUG
+        handlers:
+          - default-handler
+
+strategies:
+  test:
+    type: arbitrage
+    # max_spend_part = 0.99 - 99% of funds will be used for arbitrage window processing.
+    max_spend_part: 1.0
+    # width = 1.2 - arbitrage works with profit from 20%
+    # width = 0.8 - arbitrage works with profit from -20%
+    window_direct_width: 1.00
+    # reversed_width should be
+    # less or equal window_direct_width!
+    window_reversed_width: 1.00
+    order_timeout: 30
+    fetch_order_interval: 0.1
+    order_placement_interval: 0.0
+    autoreverse_order_delta: 15
+    order_type: limit  # or "market"
+    exchanges:
+      - left
+      - right
+    # @todo #382:60m Resolve `pairs` config ambiguity.
+    #  Now we use strategies.test.pairs config
+    #  as initial pairs list for Exchanges constructor.
+    pairs:
+      - LTCUSD
+      - BTCUSD
+
+# every exchange from `exchanges` section
+# will inherit this values by default.
+default_exchange:
+  fee: 0.01
+  limit: 0
+  fetch_balances_interval: 0.0
+  update_tickers_interval: 0.0
+  update_tickers_timeout: 0.0
+  subscribe_on_pairs_delay: 0.0
+  pairs:
+    - LTCUSD
+    - BTCUSD
+  pair_limits:
+    DEFAULT: 1.0
+    LTCUSD: 2.0
+    BTCUSD: 0.1
+    ETHUSD: 1.0
+    ETCUSD: 1.0
+
+exchanges:
+  left:
+    pair_limits:
+      DEFAULT: 1.0
+      LTCUSD: 0.5
+    transport:
+      balances:
+        USD: 50000.0
+        BTC: 8.0
+        ETC: 0.0
+  right:
+    transport:
+      balances:
+        USD: 50000.0
+        BTC: 8.0
+        ETC: 0.0

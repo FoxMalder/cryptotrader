@@ -1,0 +1,52 @@
+pipeline:
+  test:
+    image: python
+    group: test-and-lint
+    environment:
+      - CONFIG_PATH=/drone/src/github.com/${DRONE_REPO}/test.yaml
+    commands:
+      - pip install -r requirements.txt
+      # @todo #266 Run tests in parallel with docker container.
+      - pytest -vv cryptotrader/tests
+  # @todo #24 Create own pdd image, when we have own private docker registry.
+  #  Currently we use the image fidals/pdd-ci.
+  pdd-lint:
+    image: fidals/pdd-ci
+    group: test-and-lint
+    commands:
+      - pdd --verbose -f report.xml
+  # @todo #97 Push and reuse here cryptotrader/coala, when we have own private docker registry.
+  #  Currently we duplicate docker build stages in that pipeline.
+  python-lint:
+    image: coala/base
+    group: test-and-lint
+    commands:
+      # Install project's dependencies to correct isort's work.
+      - pip install -r requirements.txt
+      - pip install -r panel/requirements.txt
+      # Install coala in virtualenv to isolate its dependencies.
+      - pip install virtualenv
+      - virtualenv --system-site-packages /coala_env
+      - source /coala_env/bin/activate
+      - pip install -I coala-bears
+      # Run coala
+      - coala --ci
+  # @todo #97 Push and reuse here cryptotrader/mypy, when we have own private docker registry.
+  #  Currently we duplicate docker build stages in that pipeline.
+  mypy-lint:
+    image: python
+    group: test-and-lint
+    commands:
+      - pip install mypy
+      - mypy --config-file mypy.ini cryptotrader/
+services:
+  db:
+    image: timescale/timescaledb
+    environment:
+      POSTGRES_USER: cryptotrader
+      POSTGRES_PASSWORD: test
+    commands:
+      - cp migrations/*.up.sql /docker-entrypoint-initdb.d/
+      - docker-entrypoint.sh postgres
+  redis:
+    image: redis

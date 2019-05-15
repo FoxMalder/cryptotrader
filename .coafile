@@ -1,0 +1,16 @@
+# https://github.com/coala/bear-docs/blob/master/README.rst#python
+
+[all]
+bears = coalaBear, FilenameBear, InvalidLinkBear, SpaceConsistencyBear
+ignore = cryptotrader/**/__init__.py,cryptotrader/**/__pycache__/**
+use_spaces = True
+
+[all.python]
+bears = PycodestyleBear, PyDocStyleBear, PyFlakesBear, PyImportSortBear
+files = **/(*.py)
+isort_multi_line_output = 5
+language = Python 3
+max_line_length = 100
+pycodestyle_ignore = E252, E305, W503, W605
+pydocstyle_ignore = D100, D101, D102, D103, D104, D105, D106, D203, D212
+python_version = 3.6

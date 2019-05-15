@@ -1,0 +1,17 @@
+{% macro pagination_li(href, title) -%}
+  <li class="page-item">
+    {% if href %}
+      <a class="page-link btn" href="{{ href }}">
+    {% else %}
+      <a class="page-link btn disabled" href="#">
+    {% endif %}
+      {{ title }}
+    </a>
+  </li>
+{%- endmacro %}
+
+{% macro nav_item(href, title) -%}
+<li class="nav-item">
+    <a class="nav-link" href="{{ href }}">{{ title }}</a>
+  </li>
+{%- endmacro %}
